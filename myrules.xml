@@ -1,0 +1,59 @@
+<Sysmon schemaversion="4.50">
+<HashAlgorithms>md5,sha256,IMPHASH</HashAlgorithms>
+<CheckRevocation/>
+
+<EventFiltering>
+	
+	<!-- reverse shell detection -->
+	<RuleGroup groupRelation="and">
+		<NetworkConnect onmatch="include">
+			<Image condition="image">powershell.exe</Image>
+			<Image condition="image">cmd.exe</Image>
+			<!-- Default port for metasploit -->
+			<DestinationPort condition="is">4444</DestinationPort>
+			<!-- You can remove it too -->
+			
+		</NetworkConnect>
+	</RuleGroup>
+
+	
+	<RuleGroup name="" groupRelation="or">
+		<ProcessCreate onmatch="include">
+			
+			
+			<!-- Powershell execution detection rule -->
+			<Rule groupRelation="and">
+				<Image condition="image">powershell.exe</Image>
+				<ParentImage condition="excludes">explorer.exe</ParentImage>
+				<CommandLine condition="contains">hidden</CommandLine>
+			</Rule>
+
+			<!-- sc.exe execution rule -->
+			<Rule groupRelation="and">
+				<Image condition="image">sc.exe</Image>
+				<CommandLine condition="contains">binpath</CommandLine>
+				<CommandLine condition="contains">create</CommandLine>
+				<ParentCommandLine condition="contains">hidden</ParentCommandLine>
+				
+			</Rule>
+			
+		</ProcessCreate>
+	</RuleGroup>
+
+	
+	<!-- Service creation detection -->
+	<RuleGroup groupRelation="and">
+		<RegistryEvent onmatch="include">
+			<TargetObject condition="contains">SYSTEM\CurrentControlSet\Services</TargetObject>
+			<Image condition="contains">services.exe</Image>
+			<EventType condition="is">CreateKey</EventType>
+		</RegistryEvent>
+	</RuleGroup>
+
+	<ProcessTerminate onmatch="include">
+		</ProcessTerminate>
+
+	
+	
+</EventFiltering>
+</Sysmon>
